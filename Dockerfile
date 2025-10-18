@@ -14,4 +14,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 ENV PYTHONUNBUFFERED=1
 
 # 6. Запускаем бота
-CMD ["python", "bot.py"]
+CMD ["python", "main.py"]
+
