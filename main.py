@@ -10,24 +10,23 @@ if not TOKEN:
 
 intents = discord.Intents.default()
 intents.message_content = True  # для текстовых команд
-intents.guilds = True            # для slash-команд
+intents.guilds = True           # для slash-команд
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # -------------------- МОДАЛЬНАЯ ФОРМА --------------------
 class ContractModal(discord.ui.Modal, title="Заполнение контракта"):
-    def __init__(self, channel_id: int):
+    def __init__(self):
         super().__init__()
-        self.channel_id = channel_id
 
         # Ссылка на скриншот
-        self.add_item(discord.ui.InputText(
+        self.add_item(discord.ui.TextInput(
             label="Ссылка на скриншот",
             placeholder="Вставьте ссылку на скриншот",
             required=True
         ))
 
-        # Галочка "Активировал контракт?" через Select (1 вариант)
+        # Галочка "Активировал контракт?" через Select
         self.add_item(discord.ui.Select(
             placeholder="Активировал контракт?",
             options=[
@@ -44,7 +43,8 @@ class ContractModal(discord.ui.Modal, title="Заполнение контрак
             options=[
                 discord.SelectOption(label="Дары моря", value="Дары моря"),
                 discord.SelectOption(label="Металлургия", value="Металлургия"),
-                discord.SelectOption(label="Товары со склада", value="Товары со склада")
+                discord.SelectOption(label="Товары", value="Товары"),
+                discord.SelectOption(label="Ателье", value="Ателье")
             ],
             min_values=1,
             max_values=1
@@ -55,7 +55,17 @@ class ContractModal(discord.ui.Modal, title="Заполнение контрак
         activated = self.children[1].values[0]
         contract_type = self.children[2].values[0]
 
-        channel = bot.get_channel(self.channel_id)
+        # Словарь каналов по типу контракта
+        channels_map = {
+            'Дары моря': 1427776962390261801,
+            'Металлургия': 1427776981432406117,
+            'Товары': 1427777104879288550,
+            'Ателье': 1427777125519458384
+        }
+
+        channel_id = channels_map.get(contract_type)
+        channel = bot.get_channel(channel_id)
+
         if channel:
             await channel.send(
                 f"**{interaction.user.mention}**\n"
@@ -63,6 +73,7 @@ class ContractModal(discord.ui.Modal, title="Заполнение контрак
                 f"Скриншот: {screenshot}\n"
                 f"{activated} контракт"
             )
+
         await interaction.response.send_message("Форма отправлена!", ephemeral=True)
 
 # -------------------- СОБЫТИЯ --------------------
@@ -80,11 +91,10 @@ async def on_ready():
 async def ping(interaction: discord.Interaction):
     await interaction.response.send_message("🏓 Pong!")
 
-# -------------------- КОМАНДА /КОНТРАКТ --------------------
-@bot.tree.command(name="контракт", description="Заполнить форму контракта")
-async def contract(interaction: discord.Interaction):
-    channel_id = 1427776903552438447  # ID текстового канала для отправки сообщений
-    modal = ContractModal(channel_id)
+# -------------------- КОМАНДА /CONTRACTS --------------------
+@bot.tree.command(name="contracts", description="Заполнить форму контракта")
+async def contracts(interaction: discord.Interaction):
+    modal = ContractModal()
     await interaction.response.send_modal(modal)
 
 # -------------------- ЗАПУСК --------------------
