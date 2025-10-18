@@ -9,6 +9,9 @@ if not TOKEN:
     raise ValueError("❌ Переменная окружения DISCORD_TOKEN не установлена!")
 
 intents = discord.Intents.default()
+intents.message_content = True  # для текстовых команд
+intents.guilds = True            # для slash-команд
+
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
